@@ -16,9 +16,9 @@ The [deployment guide](https://github.com/sensu/web/blob/master/INSTALL.md) reco
 ```shell
 node scripts serve
 ```
-which starts an express.js server. It watches the source code for changes, recompiles the changed files on-the-fly and hot-reloads the webpage to greatly faciliate local development.
+which starts an express.js server. It watches the source code for changes, recompiles the changed files on-the-fly and hot-reloads the webpage to greatly facilitate local development.
 
-However, this is far away from a production-ready deployment for the following reasons:
+However, this is by far not a production-ready deployment for the following reasons:
  * Takes ~5 minutes to compile and start
  * Consumes ~1-2 GB of RAM
  * Watches ~130.000 files for changes to re-compile and hot-reload - the guide mentions this as an unresolved bug and provides a workaround to increase the maximum number of file watches in the OS
@@ -71,7 +71,7 @@ server {
 
 **The Dockerfile**
 
-Since sensu/web is a SPA, we need to ensure that all incoming http requests are rewritten to `/index.html` as seen in line 32 of the dev server by the use of the node package `connect-history-api-fallback`.. For that, we use another custom nginx configuration that we supply during the docker build. Here we also enable compression and caching for static assets to enable faster load times:
+Since sensu/web is a SPA, we need to ensure that all incoming http requests are rewritten to `/index.html` as seen in line 32 of the dev server by the use of the node package `connect-history-api-fallback`. For that, we use another custom nginx configuration that we supply during the docker build. Here we also enable compression and caching for static assets to enable faster load times:
 
 ```
 server {
@@ -96,7 +96,7 @@ server {
 
 We are using a multi-stage Dockerfile to clone the source, install dependencies, build the static site and then create a docker image based on `nginx:alpine` that just contains the static build output.
 
-In case you want to deploy sensu/web on openshift, be sure to uncomment the last `RUN` command in the Dockerfile before you build the image, as the Openshift security model
+In case you want to deploy sensu/web on openshift, be sure to uncomment the last `RUN` command in the Dockerfile before you build the image, as the Openshift security model runs docker images under a random user and requires directories to be world-writeable.
 
 **sensu/web deployment - docker**
 
