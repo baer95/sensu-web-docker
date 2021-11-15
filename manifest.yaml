@@ -1,0 +1,114 @@
+---
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  name: sensu-web
+  namespace: sensu-web
+  labels:
+    app: sensu-web
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    name: sensu-web
+  strategy:
+    type: Rolling
+    rollingParams:
+      intervalSeconds: 1
+      maxSurge: 25%
+      maxUnavailable: 0
+      timeoutSeconds: 600
+      updatePeriodSeconds: 1
+    activeDeadlineSeconds: 21600
+  template:
+    metadata:
+      name: sensu-web
+      labels:
+        name: sensu-web
+    spec:
+      containers:
+        - name: sensu-web
+          image: docker-registry.default.svc:5000/sensu-web/sensu-web@latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5000
+              name: tcp
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: 5000
+            timeoutSeconds: 1
+          livenessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: 5000
+            timeoutSeconds: 1
+          resources:
+            limits:
+              cpu: 300m
+              memory: 500Mi
+            requests:
+              cpu: 300m
+              memory: 500Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      terminationGracePeriodSeconds: 30
+  triggers:
+    - type: ConfigChange
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+          - sensu-web
+        from:
+          kind: ImageStreamTag
+          name: 'sensu-web:v1.1.0'
+          namespace: sensu-web
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sensu-web
+  namespace: sensu-web
+  labels:
+    app: sensu-web
+spec:
+  type: ClusterIP
+  clusterIP: 172.30.56.182
+  ports:
+    - name: 5000-tcp
+      port: 5000
+      protocol: TCP
+      targetPort: 5000
+  selector:
+    deploymentconfig: sensu-web
+  sessionAffinity: None
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: sensu-web
+  namespace: sensu-web
+  labels:
+    app: sensu-web
+spec:
+  host: sensu.example.com
+  port:
+    targetPort: 5000-tcp
+  tls:
+    termination: edge
+  to:
+    kind: Service
+    name: sensu-web
+    weight: 100
+  wildcardPolicy: None
