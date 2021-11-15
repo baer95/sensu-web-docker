@@ -112,7 +112,7 @@ docker run -d --rm -p 5000:5000 sensu-web-docker:v1.1.0
 
 **sensu/web deployment - openshift**
 
-To deploy the Docker image on Openshift, first build and push the image to your registry of choice. Then, use the template provided in `sensu-web-docker.template` to create a deployment and all other required resources in an Openshift project.
+To deploy the Docker image on Openshift, first build and push the image to your registry of choice. Then, use the manifests provided in `manifest.yaml` all required resources in an Openshift project.
 
 ## Is it working?
 
